@@ -46,7 +46,7 @@ Os notebooks fazem o tratamento e os modelos e geram as tabelas da camada Gold. 
 |--------|---------|-------|------------------------|--------------------------|
 | 1 | 05/10 a 11/10 | Dado bruto (Bronze) | `data/bronze/` | 2. Plano de Preparação de Dados |
 | 2 | 12/10 a 18/10 | Tratamento dos dados (Silver) e pesquisa de métodos de previsão | `notebooks/01_tratamento.ipynb`, `data/silver/`, `docs/log_tratamento.md` | 2. Plano de Preparação de Dados |
-| 3 | 19/10 a 25/10 | Análise exploratória e variáveis derivadas (Gold — análise) | `notebooks/02_eda.ipynb`, `data/gold/` | 3. Análise Exploratória de Dados |
+| 3 | 19/10 a 25/10 | Análise exploratória, análises estatísticas e probabilísticas e variáveis derivadas (Gold — análise) | `notebooks/02_eda.ipynb`, `data/gold/` | 3. Análise Exploratória de Dados |
 | 4 | 26/10 a 01/11 | Modelos (Gold — modelos) | notebooks de modelagem | Bônus — Modelagem Preditiva |
 | 5 | 02/11 a 08/11 | Modelos + estrutura inicial do sistema e funcionalidades básicas | notebooks de modelagem, `app/` | Bônus — Modelagem Preditiva |
 | 6 | 09/11 a 15/11 | Modelos e sugestão de compra | notebooks de modelagem, `data/gold/` | Bônus — Modelagem Preditiva |
@@ -76,6 +76,12 @@ Seções 3 e 4 do Plano de Preparação:
 Seção 5 do Plano de Preparação e requisito 3:
 - variáveis derivadas: dia da semana, mês, fim de semana, venda dos dias anteriores (1 e 7 dias) e média móvel de 7 dias, calculadas por loja × produto em ordem de data; diferença de preço para o concorrente, preço com desconto, cobertura de estoque e rótulo de ruptura;
 - EDA com padrões, distribuições, correlações e agrupamentos, cada gráfico com interpretação em texto;
+- análises estatísticas e probabilísticas, cada uma com interpretação em texto:
+  - estatística descritiva da venda e da demanda por loja × produto, categoria e região (média, mediana, desvio padrão, assimetria);
+  - ajuste de distribuição para a venda diária (normal, Poisson ou binomial negativa), base para o estoque de segurança;
+  - probabilidade de ruptura, geral e condicional (por categoria, clima, desconto, promoção e epidemia), com intervalo de confiança;
+  - testes de hipótese: diferença de venda entre fim de semana e dia útil, entre climas e entre estações (t/Mann-Whitney, ANOVA/Kruskal-Wallis) e associação entre ruptura e variáveis categóricas (qui-quadrado);
+  - correlação de Pearson e Spearman com teste de significância;
 - avaliação de outliers univariados e bivariados;
 - escolha entre Seasonality e mês (manter só uma).
 
