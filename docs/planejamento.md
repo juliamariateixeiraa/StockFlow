@@ -6,7 +6,7 @@ O StockFlow é uma ferramenta de previsão de demanda e apoio à reposição de 
 
 Projeto da disciplina Projetos 5 (CESAR School, 2026.2), trilha de Ciência da Computação — Análise e Visualização de Dados.
 
-**Integrantes:** Alan Matos, Arthur Xavier, Gabriela Monteiro, João Lucas Veiga, Julia Maria Santos e Nathália de Mello.
+**Integrantes:** Alan Matos, Arthur Xavier, Gabriela Monteiro, João Lucas Veiga, Julia Maria Teixeira e Nathália de Mello.
 
 ## Documentos de referência
 
