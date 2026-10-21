@@ -12,8 +12,8 @@ Projeto da disciplina Projetos 5 (CESAR School, 2026.2), trilha de Ciência da C
 
 Todas as etapas seguem estes documentos:
 
-- **Plano de Preparação de Dados** — fonte de dados, tratamento, transformações e pipeline.
-- **Requisitos CC — Projeto 5 (SR2)** — entregáveis oficiais da trilha.
+- **[Plano de Preparação de Dados](plano_preparacao_dados.md)** (`docs/plano_preparacao_dados.md`) — fonte de dados, tratamento, transformações e pipeline.
+- **[Requisitos CC — Projeto 5 (SR2)](requisitos_cc_sr2.md)** (`docs/requisitos_cc_sr2.md`) — entregáveis oficiais da trilha.
 - **Restrições de CC** — limites técnicos definidos pelo grupo.
 - **Seleção de Ideias** — funcionalidades priorizadas e fluxo da solução.
 - **Matriz CSD** — pesquisa que sustenta as decisões.

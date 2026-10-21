@@ -37,6 +37,13 @@ Os dados seguem três camadas:
 
 Cada etapa lê da camada anterior e grava na seguinte. As decisões de tratamento ficam registradas em `docs/log_tratamento.md`.
 
+## Documentação
+
+- [docs/planejamento.md](docs/planejamento.md) — decisões, cronograma e etapas
+- [docs/plano_preparacao_dados.md](docs/plano_preparacao_dados.md) — plano de preparação de dados
+- [docs/requisitos_cc_sr2.md](docs/requisitos_cc_sr2.md) — requisitos da trilha de CC
+- [docs/log_tratamento.md](docs/log_tratamento.md) — registro do tratamento dos dados
+
 ## Stack prevista
 
 - **Dados**: Python e pandas no Google Colab
