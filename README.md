@@ -43,6 +43,7 @@ Cada etapa lê da camada anterior e grava na seguinte. As decisões de tratament
 - [docs/plano_preparacao_dados.md](docs/plano_preparacao_dados.md) — plano de preparação de dados
 - [docs/requisitos_cc_sr2.md](docs/requisitos_cc_sr2.md) — requisitos da trilha de CC
 - [docs/log_tratamento.md](docs/log_tratamento.md) — registro do tratamento dos dados
+- [docs/pesquisa_metodos_previsao.md](docs/pesquisa_metodos_previsao.md) — métodos de previsão e sugestão de compra
 
 ## Stack prevista
 

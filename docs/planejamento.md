@@ -14,6 +14,7 @@ Todas as etapas seguem estes documentos:
 
 - **[Plano de Preparação de Dados](plano_preparacao_dados.md)** (`docs/plano_preparacao_dados.md`) — fonte de dados, tratamento, transformações e pipeline.
 - **[Requisitos CC — Projeto 5 (SR2)](requisitos_cc_sr2.md)** (`docs/requisitos_cc_sr2.md`) — entregáveis oficiais da trilha.
+- **[Pesquisa de Métodos de Previsão](pesquisa_metodos_previsao.md)** (`docs/pesquisa_metodos_previsao.md`) — métodos de previsão, métricas e cálculo da sugestão de compra.
 - **Restrições de CC** — limites técnicos definidos pelo grupo.
 - **Seleção de Ideias** — funcionalidades priorizadas e fluxo da solução.
 - **Matriz CSD** — pesquisa que sustenta as decisões.
