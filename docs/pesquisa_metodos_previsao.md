@@ -117,9 +117,11 @@ A fórmula assume erros aproximadamente normais. Isso deve ser conferido na aná
 
 Decisões que o grupo precisa tomar antes:
 
-- alvo da regressão: `demanda` ou `unidades_vendidas`;
-- regra da ruptura;
+- ~~alvo da regressão: `demanda` ou `unidades_vendidas`~~ — decidido na EDA (Sprint 3): `demanda`;
+- ~~regra da ruptura~~ — decidido na EDA (Sprint 3): venda ≥ estoque ou demanda > estoque;
 - prazo de entrega padrão e nível de serviço.
+
+A EDA também tirou do modelo principal o preço do dia, o desconto, o mês e o dia da semana (justificativas no `docs/log_tratamento.md`).
 
 ## Fontes
 
