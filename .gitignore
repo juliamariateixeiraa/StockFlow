@@ -1,7 +1,44 @@
+
+# ==========================
+# Variáveis de ambiente
+# ==========================
 .env
-.env.local
+.env.*
+!.env.example
+
+# ==========================
+# Next.js / Node.js
+# ==========================
 node_modules/
 .next/
-.ipynb_checkpoints/
+out/
+dist/
+
+# ==========================
+# Python
+# ==========================
+venv/
+.venv/
 __pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ==========================
+# Streamlit
+# ==========================
+.streamlit/secrets.toml
+
+# ==========================
+# Sistema operacional
+# ==========================
 .DS_Store
+Thumbs.db
+
+# ==========================
+# Arquivos temporários
+# ==========================
+*.log
+*.tmp
