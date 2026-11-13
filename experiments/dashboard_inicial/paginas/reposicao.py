@@ -4,34 +4,12 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-# ---------------------------------------------------
-# CONFIGURAÇÃO DA PÁGINA
-# ---------------------------------------------------
-st.set_page_config(
-    page_title="StockFlow | Reposição de estoque",
-    page_icon="📦",
-    layout="wide"
-)
+from tema import ATENCAO, CRITICO, DEMANDA, GRADE, NEUTRO, TEXTO_SECUNDARIO, aplicar_estilo, cabecalho
 
-st.markdown("""
-<style>
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-    }
-    .info-box {
-        background-color: rgba(20, 60, 100, 0.55);
-        border-radius: 12px;
-        padding: 16px;
-        margin-top: 10px;
-        margin-bottom: 10px;
-        color: #d9e6f2;
-    }
-</style>
-""", unsafe_allow_html=True)
+aplicar_estilo()
 
-CORES_ALERTA = {"Crítico": "#e34948", "Pedir agora": "#d8a541", "OK": "#22b8b2"}
-FUNDO = "#061a2b"
+CORES_ALERTA = {"Crítico": CRITICO, "Pedir agora": ATENCAO, "OK": NEUTRO}
+SIMBOLO_ALERTA = {"Crítico": "▲ Crítico", "Pedir agora": "● Pedir agora", "OK": "○ OK"}
 
 # z da normal para os níveis de serviço oferecidos (evita depender do scipy)
 Z_NIVEL = {"90%": 1.2816, "95%": 1.6449, "98%": 2.0537, "99%": 2.3263}
@@ -95,13 +73,20 @@ def formatar_reais(valor):
     return "R$ " + f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
+def formatar_reais_curto(valor):
+    for limite, sufixo in [(1e6, "mi"), (1e3, "mil")]:
+        if valor >= limite:
+            return f"R$ {valor / limite:.1f} {sufixo}".replace(".", ",")
+    return formatar_reais(valor)
+
+
 def grafico_estoque_ponto(dff):
     fig = go.Figure()
     for alerta, cor in CORES_ALERTA.items():
         g = dff[dff["alerta"] == alerta]
         fig.add_trace(go.Scatter(
             x=g["ponto_pedido"], y=g["estoque_atual"], mode="markers", name=alerta,
-            marker=dict(color=cor, size=9),
+            marker=dict(color=cor, size=9, line=dict(color="#ffffff", width=1)),
             customdata=np.stack([g["loja_id"], g["produto_id"], g["categoria"]], axis=-1) if len(g) else None,
             hovertemplate="%{customdata[0]} · %{customdata[1]} (%{customdata[2]})<br>"
                           "Ponto de pedido: %{x:.0f}<br>Estoque atual: %{y:.0f}<extra></extra>"
@@ -109,12 +94,11 @@ def grafico_estoque_ponto(dff):
     limite = dff["ponto_pedido"].max() * 1.25
     fig.add_trace(go.Scatter(
         x=[0, limite], y=[0, limite], mode="lines", name="Estoque = ponto de pedido",
-        line=dict(color="#8aa0b4", dash="dash", width=1), hoverinfo="skip"
+        line=dict(color=TEXTO_SECUNDARIO, dash="dash", width=1), hoverinfo="skip"
     ))
-    fig.update_layout(
-        template="plotly_dark", title="Estoque atual × ponto de pedido",
+    fig.update_layout( title="Estoque atual × ponto de pedido",
         xaxis_title="Ponto de pedido (unidades)", yaxis_title="Estoque atual (unidades)",
-        paper_bgcolor=FUNDO, plot_bgcolor=FUNDO, legend_title="", xaxis_range=[0, limite]
+        xaxis_range=[0, limite]
     )
     return fig
 
@@ -123,24 +107,20 @@ def grafico_item(hist, prev, linha, prazo, revisao):
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=hist["data"], y=hist["demanda"], mode="lines", name="Demanda registrada",
-        line=dict(color="#d8a541", width=2)
+        line=dict(color=NEUTRO)
     ))
     fig.add_trace(go.Scatter(
         x=prev["data"], y=prev["demanda_prevista"], mode="lines+markers", name="Demanda prevista",
-        line=dict(color="#22b8b2", width=3)
+        line=dict(color=DEMANDA)
     ))
-    fim_entrega = prev["data"].iloc[prazo - 1]
-    fim_cobertura = prev["data"].iloc[prazo + revisao - 1]
-    fig.add_vrect(x0=prev["data"].iloc[0], x1=fim_entrega, fillcolor="#e34948", opacity=0.12, line_width=0,
-                  annotation_text="até a entrega", annotation_position="top left")
-    if revisao > 0:
-        fig.add_vrect(x0=fim_entrega, x1=fim_cobertura, fillcolor="#22b8b2", opacity=0.10, line_width=0,
-                      annotation_text="até a próxima entrega", annotation_position="top left")
+    meio_dia = pd.Timedelta(12, unit="h")
+    fig.add_vrect(x0=prev["data"].iloc[0] - meio_dia, x1=prev["data"].iloc[prazo + revisao - 1] + meio_dia,
+                  fillcolor=DEMANDA, opacity=0.08, line_width=0,
+                  annotation_text=f"o pedido de hoje cobre {prazo + revisao} dias", annotation_position="top left",
+                  annotation_font_color=TEXTO_SECUNDARIO)
     fig.update_layout(
-        template="plotly_dark",
         title=f"{linha['loja_id']} · {linha['produto_id']}: últimos 60 dias e previsão",
-        xaxis_title="Data", yaxis_title="Unidades por dia",
-        paper_bgcolor=FUNDO, plot_bgcolor=FUNDO, legend_title=""
+        xaxis_title="Data", yaxis_title="Unidades por dia", xaxis_tickformat="%d/%m",
     )
     return fig
 
@@ -187,7 +167,7 @@ if dff.empty:
 # ---------------------------------------------------
 # TÍTULO
 # ---------------------------------------------------
-st.title("📦 StockFlow | O que comprar hoje")
+cabecalho("O que comprar hoje")
 st.markdown(f"""
 <div class="info-box">
 Recomendação de compra para <strong>{data_ref:%d/%m/%Y}</strong>, o último dia da base. Para cada loja × produto, a
@@ -206,12 +186,13 @@ c1.metric("Itens críticos", formatar_numero((dff["alerta"] == "Crítico").sum()
 c2.metric("Pedir agora", formatar_numero((dff["alerta"] == "Pedir agora").sum()),
           help="O estoque está abaixo do ponto de pedido.")
 c3.metric("Unidades sugeridas", formatar_numero(dff["quantidade_sugerida"].sum()))
-c4.metric("Valor da compra", formatar_reais(dff["valor_compra"].sum()))
+c4.metric("Valor da compra", formatar_reais_curto(dff["valor_compra"].sum()),
+          help=formatar_reais(dff["valor_compra"].sum()))
 
 # ---------------------------------------------------
 # 01 - SITUAÇÃO
 # ---------------------------------------------------
-st.markdown("## 01 · Quais itens estão abaixo do ponto de pedido?")
+st.markdown("## Quais itens estão abaixo do ponto de pedido?")
 col1, col2 = st.columns([3, 2])
 with col1:
     st.plotly_chart(grafico_estoque_ponto(dff), use_container_width=True)
@@ -221,7 +202,7 @@ with col2:
 <ul>
     <li>Abaixo da linha tracejada, o estoque não atravessa o prazo de <strong>{prazo} dia(s)</strong> com
     {nivel} de segurança: é hora de pedir.</li>
-    <li><strong style="color:#e34948">Crítico</strong>: o estoque não cobre nem a demanda prevista até a entrega.
+    <li><strong style="color:{CRITICO}">Crítico</strong>: o estoque não cobre nem a demanda prevista até a entrega.
     Vai faltar mesmo pedindo hoje.</li>
     <li>O pedido de hoje cobre <strong>{prazo + revisao} dias</strong>: o prazo de entrega mais o período até a
     próxima revisão.</li>
@@ -232,7 +213,7 @@ with col2:
 # ---------------------------------------------------
 # 02 - LISTA DE COMPRAS
 # ---------------------------------------------------
-st.markdown("## 02 · Lista de compras")
+st.markdown("## Lista de compras")
 ordem = {"Crítico": 0, "Pedir agora": 1, "OK": 2}
 lista = (
     dff.assign(_ordem=dff["alerta"].map(ordem), _folga=dff["estoque_atual"] - dff["ponto_pedido"])
@@ -241,23 +222,25 @@ lista = (
          "ponto_pedido", "estoque_seguranca", "quantidade_sugerida", "valor_compra"]]
 )
 st.dataframe(
-    lista.style.apply(lambda col: [f"color: {CORES_ALERTA[v]}; font-weight: 600" for v in col], subset=["alerta"]),
+    lista.assign(alerta=lista["alerta"].map(SIMBOLO_ALERTA))
+         .style.apply(lambda col: [f"color: {CORES_ALERTA[v.split(' ', 1)[1]]}; font-weight: 600" for v in col],
+                      subset=["alerta"]),
     use_container_width=True, hide_index=True,
     column_config={
         "alerta": "Alerta", "loja_id": "Loja", "produto_id": "Produto", "categoria": "Categoria",
-        "estoque_atual": st.column_config.NumberColumn("Estoque atual", format="%d"),
+        "estoque_atual": st.column_config.NumberColumn("Estoque atual", format="localized"),
         "demanda_prevista_L": st.column_config.NumberColumn("Demanda até a entrega", format="%.0f"),
         "ponto_pedido": st.column_config.NumberColumn("Ponto de pedido", format="%.0f"),
         "estoque_seguranca": st.column_config.NumberColumn("Estoque de segurança", format="%.0f"),
-        "quantidade_sugerida": st.column_config.NumberColumn("Comprar (un.)", format="%d"),
-        "valor_compra": st.column_config.NumberColumn("Valor (R$)", format="%.2f"),
+        "quantidade_sugerida": st.column_config.NumberColumn("Comprar (un.)", format="localized"),
+        "valor_compra": st.column_config.NumberColumn("Valor (R$)", format="localized"),
     },
 )
 
 # ---------------------------------------------------
 # 03 - DETALHE DO ITEM
 # ---------------------------------------------------
-st.markdown("## 03 · De onde vem a sugestão de um item?")
+st.markdown("## De onde vem a sugestão de um item?")
 opcoes = (lista["loja_id"] + " · " + lista["produto_id"]).tolist()
 escolha = st.selectbox("Item", opcoes)
 loja_item, produto_item = escolha.split(" · ")
@@ -292,7 +275,7 @@ O modelo não conhece promoções futuras: em semana de promoção, reforce o pe
 # ---------------------------------------------------
 # 04 - CONFIANÇA NA REGRA
 # ---------------------------------------------------
-st.markdown("## 04 · A regra funciona?")
+st.markdown("## A regra funciona?")
 st.markdown("""
 <div class="info-box">
 <p>Teste com os últimos 84 dias da base (notebook 03, seção 10). A regra foi simulada com a demanda real e comparada

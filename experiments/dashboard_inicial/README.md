@@ -14,7 +14,11 @@ StockFlow/
 └── experiments/
     ├── sprint4_previsao/
     └── dashboard_inicial/
-        ├── app.py
+        ├── app.py              # navegação entre as páginas
+        ├── tema.py             # cores, fontes e estilo dos gráficos
+        ├── paginas/
+        │   ├── panorama.py     # visão histórica (dashboard inicial)
+        │   └── reposicao.py    # o que comprar hoje (Sprint 6)
         ├── requirements.txt
         ├── README.md
         └── .streamlit/config.toml
@@ -44,7 +48,7 @@ Filtros: loja, categoria, produto e período. A camada Gold é lida diretamente 
 
 ## Página de reposição (Sprint 6)
 
-A pasta `pages/` adiciona a página **Reposição** ao mesmo app (menu lateral do Streamlit). Ela lê as tabelas geradas por `notebooks/03_reposicao.ipynb`:
+A página **Reposição** (`paginas/reposicao.py`) aparece no menu lateral, ao lado do Panorama. Ela lê as tabelas geradas por `notebooks/03_reposicao.ipynb`:
 
 - `data/gold/reposicao.parquet`: erro do modelo, estoque atual e recomendação padrão por loja × produto;
 - `data/gold/reposicao_previsao_diaria.parquet`: previsão diária dos próximos 30 dias.
@@ -58,7 +62,7 @@ A página mostra o que comprar em 30/01/2024: itens abaixo do ponto de pedido, l
 - **Filtros:** loja, categoria, produto, período e agrupamento temporal.
 - **Narrativa visual:** panorama → evolução → distribuição → comportamento semanal → conclusões.
 - **Clareza e usabilidade:** unidades nomeadas, filtros em uma única barra lateral, informações sobre limitação dos dados.
-- **Identidade própria:** azul-marinho, verde-petróleo, turquesa e dourado, distinta do painel da professora.
+- **Identidade própria:** tema claro com verde StockFlow (`#1f6b4f`) na interface. Nos gráficos, verde para demanda e azul para vendas, um par validado para daltonismo. Vermelho e âmbar ficam reservados para os alertas de estoque, sempre com rótulo. Tudo está centralizado em `tema.py`.
 
 ## Cuidados analíticos
 
