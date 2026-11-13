@@ -25,8 +25,8 @@ Todas as etapas seguem estes documentos:
 |------|---------|
 | Base de dados | Retail Store Inventory and Demand Forecasting (Kaggle), dado simulado, ~76 mil linhas, uma linha por data × loja × produto |
 | Pipeline | Arquitetura medallion: Bronze (dado bruto) → Silver (dado tratado) → Gold (dado pronto para análise, modelos e dashboard) |
-| Formatos | Bronze em CSV; Silver e Gold em Parquet; banco de dados entra com a aplicação (Sprints 7 e 8) |
-| Modelagem | Apenas regressão simples (previsão de demanda e sugestão de compra) e classificação simples (alerta de ruptura) |
+| Formatos | Bronze em CSV; Silver e Gold em Parquet. O dashboard lê os Parquet da Gold diretamente |
+| Modelagem | Regressão linear com calendário para a previsão de demanda (menor erro na comparação da Sprint 4). O alerta de ruptura é uma regra do cálculo de reposição (estoque abaixo do ponto de pedido), sem classificador — decidido na Sprint 6 |
 | Explicabilidade | O modelo precisa permitir mostrar quais variáveis pesam na sugestão de compra |
 | Divisão treino/teste | Por data, nunca aleatória |
 | Avaliação da classificação | Precisão, recall e F1, além da acurácia, porque a ruptura é minoria |
@@ -34,14 +34,15 @@ Todas as etapas seguem estes documentos:
 | Rótulo de ruptura | Venda ≥ estoque ou demanda > estoque (14,7% dos dias) — decidido na EDA (Sprint 3) |
 | Alvo da regressão | `demanda`, com a venda sem os dias de ruptura como teste de robustez — decidido na EDA (Sprint 3) |
 | Variáveis dos modelos | Estação no lugar do mês; sem dia da semana; promoção no lugar de desconto; preço do dia fora do modelo principal (artefato do dado sintético) — ver `docs/log_tratamento.md` |
-| Fora do escopo do MVP | RFM (não há identificação de cliente), fontes externas reais (INMET, Sebrae), escala de equipe por turno |
-| Ferramentas | Google Colab + Python (pandas) para os dados; aplicação web com Next.js, TypeScript e Tailwind; banco Postgres (Neon); publicação na Vercel; GitHub para versionamento |
+| Reposição | Prazo de entrega padrão de 1 dia (o comportamento da base), revisão semanal e nível de serviço de 95%, os três ajustáveis no dashboard; estoque de segurança com ajuste para erros autocorrelacionados — decidido na Sprint 6, ver `docs/log_tratamento.md` |
+| Fora do escopo do MVP | RFM (não há identificação de cliente), fontes externas reais (INMET, Sebrae), escala de equipe por turno, classificador de ruptura |
+| Ferramentas | Google Colab + Python (pandas) para os dados; dashboard em Streamlit (`experiments/dashboard_inicial/`), publicado no Streamlit Community Cloud; GitHub para versionamento. Substitui o plano inicial com Next.js, Neon e Vercel — decidido na Sprint 6 |
 
 ## Fluxo da solução
 
-Planilha → Banco de dados → Previsão → Estoque → Dashboard/Alertas
+Planilha → Gold → Previsão → Estoque → Dashboard/Alertas
 
-Os notebooks fazem o tratamento e os modelos e geram as tabelas da camada Gold. A aplicação lê essas tabelas do banco e mostra os resultados. Não há API própria para os modelos.
+Os notebooks fazem o tratamento e os modelos e geram as tabelas da camada Gold. O dashboard em Streamlit lê essas tabelas e mostra os resultados. Não há API própria para os modelos.
 
 ## Cronograma
 
@@ -50,12 +51,12 @@ Os notebooks fazem o tratamento e os modelos e geram as tabelas da camada Gold. 
 | 1 | 05/10 a 11/10 | Pesquisa e seleção do dataset | `data/bronze/`, `docs/planejamento.md` | 2. Plano de Preparação de Dados |
 | 2 | 12/10 a 18/10 | Tratamento dos dados | `notebooks/01_tratamento.ipynb`, `data/silver/`, `docs/log_tratamento.md`, `docs/pesquisa_metodos_previsao.md` | 2. Plano de Preparação de Dados |
 | 3 | 19/10 a 25/10 | Análise exploratória | `notebooks/02_eda.ipynb`, `data/gold/` | 3. Análise Exploratória de Dados |
-| 4 | 26/10 a 01/11 | Modelo inicial de previsão | notebooks de modelagem | Bônus — Modelagem Preditiva |
-| 5 | 02/11 a 08/11 | Avaliação do modelo e início do sistema | notebooks de modelagem, `app/` | Bônus — Modelagem Preditiva; 5. Proposta de Integração e Publicação |
-| 6 | 09/11 a 15/11 | Cálculo de reposição de estoque | notebooks de modelagem, `data/gold/` | Bônus — Modelagem Preditiva |
-| 7 | 16/11 a 22/11 | Desenvolvimento da interface | `app/`, `db/` | 4. Dashboard Interativo — Versão Inicial |
-| 8 | 23/11 a 29/11 | Integração do sistema | `app/`, `db/` | 6. Dashboard Consolidado |
-| 9 | 30/11 a 06/12 | Testes e correções | `app/`, `docs/` | 7. Versão Quase Final; 9. Documentação Final |
+| 4 | 26/10 a 01/11 | Modelo inicial de previsão | `experiments/sprint4_previsao/` | Bônus — Modelagem Preditiva |
+| 5 | 02/11 a 08/11 | Avaliação do modelo e início do sistema | `experiments/sprint4_previsao/`, `experiments/dashboard_inicial/` | Bônus — Modelagem Preditiva; 5. Proposta de Integração e Publicação |
+| 6 | 09/11 a 15/11 | Cálculo de reposição de estoque | `notebooks/03_reposicao.ipynb`, `data/gold/`, página de reposição do dashboard | Bônus — Modelagem Preditiva |
+| 7 | 16/11 a 22/11 | Desenvolvimento da interface | `experiments/dashboard_inicial/` | 4. Dashboard Interativo — Versão Inicial |
+| 8 | 23/11 a 29/11 | Integração do sistema | `experiments/dashboard_inicial/` | 6. Dashboard Consolidado |
+| 9 | 30/11 a 06/12 | Testes e correções | `experiments/dashboard_inicial/`, `docs/` | 7. Versão Quase Final; 9. Documentação Final |
 | 10 | 07/12 a 11/12 | Finalização e entrega (entrega final em 11/12/2026) | `docs/` | 8. Storytelling e Pitch; 9. Documentação Final |
 
 O Plano de Análise de Dados (requisito 1) foi entregue no ciclo anterior ao início das sprints.
@@ -122,23 +123,28 @@ No repositório (Gold — modelos):
 
 No repositório:
 - regressão: dispersão, linha de tendência e análise de resíduos;
-- classificação do alerta de ruptura: matriz de confusão, acurácia, precisão, recall, F1, curvas ROC e precision-recall;
-- teste dos modelos com e sem o período de epidemia;
-- estrutura da aplicação, organização das páginas e ferramenta de publicação (requisito 5).
+- estrutura da aplicação, organização das páginas e ferramenta de publicação (requisito 5): Streamlit.
+
+A classificação do alerta de ruptura saiu do plano na Sprint 6: o bônus de modelagem pede regressão **ou** classificação, e o alerta virou uma regra do cálculo de reposição.
 
 ### Sprint 6 — Cálculo de reposição de estoque (09/11 a 15/11)
 - Implementação do cálculo da quantidade recomendada para compra.
 - Consideração do estoque disponível, demanda prevista e estoque de segurança.
 - Testes iniciais do cálculo de reposição.
 
-No repositório: estoque de segurança, ponto de pedido e quantidade sugerida (pesquisa de métodos, seção 6).
+No repositório (`notebooks/03_reposicao.ipynb`):
+- erro do modelo no teste (σ) por loja × produto, com checagem de normalidade e de autocorrelação;
+- estoque de segurança, ponto de pedido, quantidade sugerida e alerta (crítico, pedir agora, ok), seguindo a seção 6 da pesquisa de métodos com revisão periódica;
+- teste da regra (o estoque de segurança cumpre os 95%?) e backtest contra a reposição real da base;
+- tabelas `data/gold/reposicao.parquet` e `data/gold/reposicao_previsao_diaria.parquet`;
+- página "Reposição" no dashboard, com prazo, revisão e nível de serviço ajustáveis.
 
 ### Sprint 7 — Desenvolvimento da interface (16/11 a 22/11)
 - Desenvolvimento das telas principais do sistema.
 - Criação do painel de visualização de estoque.
 - Implementação da exibição das previsões e recomendações de compra.
 
-No repositório: carga das tabelas Gold no banco e primeira versão do dashboard, com ao menos um filtro e narrativa visual (requisito 4).
+No repositório: primeira versão do dashboard, com ao menos um filtro e narrativa visual (requisito 4).
 
 ### Sprint 8 — Integração do sistema (23/11 a 29/11)
 - Integração do modelo de previsão e do cálculo de reposição com a interface.
@@ -164,4 +170,4 @@ No repositório: peça narrativa para a apresentação (requisito 8) e documenta
 
 ## Pendências
 
-- **Prazo de entrega e nível de serviço:** a base não tem prazo de entrega do fornecedor. Definir o valor padrão (ex.: 7 dias) e o nível de serviço (ex.: 95%) antes da Sprint 6 (pesquisa de métodos, seção 6).
+Nenhuma em aberto. Prazo de entrega (1 dia) e nível de serviço (95%) foram definidos na Sprint 6.

@@ -23,8 +23,9 @@ stockflow/
 │   └── gold/     # tabelas finais para modelos e dashboard
 ├── notebooks/    # notebooks de tratamento e análise
 ├── docs/         # documentação, incluindo o log de tratamento
-├── db/           # schema do banco (Sprints 7–8)
-└── app/          # aplicação web (Sprint 5)
+└── experiments/
+    ├── sprint4_previsao/   # comparação de métodos de previsão (Sprint 4)
+    └── dashboard_inicial/  # dashboard em Streamlit, com a página de reposição (Sprint 6)
 ```
 
 ### Camadas de dados
@@ -45,9 +46,8 @@ Cada etapa lê da camada anterior e grava na seguinte. As decisões de tratament
 - [docs/log_tratamento.md](docs/log_tratamento.md) — registro do tratamento dos dados
 - [docs/pesquisa_metodos_previsao.md](docs/pesquisa_metodos_previsao.md) — métodos de previsão e sugestão de compra
 
-## Stack prevista
+## Stack
 
-- **Dados**: Python e pandas no Google Colab
-- **Aplicação web**: Next.js, TypeScript e Tailwind
-- **Banco de dados**: Postgres (Neon)
-- **Publicação**: Vercel
+- **Dados e modelos**: Python e pandas no Google Colab
+- **Dashboard**: Streamlit, lendo os Parquet da camada Gold
+- **Publicação**: Streamlit Community Cloud
