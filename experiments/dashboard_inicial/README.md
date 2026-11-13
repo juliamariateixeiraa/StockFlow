@@ -40,7 +40,16 @@ Se você já possui um ambiente virtual com as dependências, pode reutilizá-lo
 4. **Padrões semanais:** demanda média observada por dia da semana.
 5. **Síntese:** interpretação contextual e cuidados com dados sintéticos.
 
-Filtros: loja, categoria, produto e período. A camada Gold é lida diretamente do repositório. Todas as visualizações respeitam a seleção. Não há dados artificiais adicionados pelo dashboard nem simulação de reposição.
+Filtros: loja, categoria, produto e período. A camada Gold é lida diretamente do repositório. Todas as visualizações respeitam a seleção. Não há dados artificiais adicionados pelo dashboard. A simulação de reposição fica na página própria (abaixo).
+
+## Página de reposição (Sprint 6)
+
+A pasta `pages/` adiciona a página **Reposição** ao mesmo app (menu lateral do Streamlit). Ela lê as tabelas geradas por `notebooks/03_reposicao.ipynb`:
+
+- `data/gold/reposicao.parquet`: erro do modelo, estoque atual e recomendação padrão por loja × produto;
+- `data/gold/reposicao_previsao_diaria.parquet`: previsão diária dos próximos 30 dias.
+
+A página mostra o que comprar em 30/01/2024: itens abaixo do ponto de pedido, lista de compras com quantidade e valor, a conta de cada item e o resultado do backtest. O prazo de entrega, o período de revisão e o nível de serviço são ajustáveis, e a conta é refeita na hora com as mesmas fórmulas do notebook. Se a base mudar, rode o notebook de novo antes de abrir o dashboard.
 
 ## Correspondência com o entregável
 
@@ -57,4 +66,4 @@ Filtros: loja, categoria, produto e período. A camada Gold é lida diretamente 
 - `unidades_vendidas` são as vendas registradas; a diferença entre ambas não prova vendas perdidas.
 - Dados são **sintéticos**.
 - Totais diários, semanais e mensais são *somados*; produtos e lojas são *contados de modo distinto*; médias por dia da semana são calculadas sobre **totais diários** para evitar viés de contagem de registros.
-- Os gráficos **não são previsões**. Isso é intencional nesta entrega.
+- Os gráficos da página principal **não são previsões**. As previsões ficam na página de reposição.

@@ -63,4 +63,33 @@ Os números e gráficos que sustentam cada decisão estão no `notebooks/02_eda.
 
 ## Pendente para a Gold de modelos (Sprints 4 a 6)
 
-One-hot de `categoria`, `clima` e `estacao`; padronização (z-score) calculada só no treino; divisão treino/teste por data. Prazo de entrega padrão e nível de serviço continuam em aberto (pesquisa de métodos, seção 7).
+One-hot de `categoria`, `clima` e `estacao`; padronização (z-score) calculada só no treino; divisão treino/teste por data. Prazo de entrega padrão e nível de serviço foram definidos na Sprint 6 (seção abaixo).
+
+## Gold análise → Gold reposição (Sprint 6)
+
+- **Gold — reposição:** `data/gold/reposicao.parquet`: 100 linhas (uma por loja × produto) e 22 colunas, com a recomendação de 30/01/2024 nos parâmetros padrão.
+- **Gold — previsão diária:** `data/gold/reposicao_previsao_diaria.parquet`: 3.000 linhas (100 itens × 30 dias), usada pelo dashboard para refazer a conta quando os parâmetros mudam.
+- Notebook: `notebooks/03_reposicao.ipynb`.
+
+| Etapa | O que foi feito | Linhas/valores afetados | Justificativa |
+|-------|-----------------|-------------------------|---------------|
+| 1. Modelo | Regressão linear com calendário (tendência, dia da semana e mês em seno e cosseno), ajustada por loja × produto, com a `demanda` como alvo. É a mesma da Sprint 4. | 100 itens | Menor WAPE nos três horizontes da Sprint 4 (25,3% / 12,9% / 12,5%), empatada com a Ridge, e explicável. Usa só o calendário, que é conhecido no futuro. |
+| 2. Erro no teste (σ) | Treino até 01/08/2023 e previsão de 02/08/2023 a 30/01/2024 (182 dias). σ = desvio do erro diário (real − previsto) por item. | 18.200 dias × item; σ mediano de 43 un./dia | Pesquisa de métodos, seção 6: usar o erro do modelo, e não a variação da demanda. |
+| 3. Normalidade | Erro padronizado comparado com a normal. | Assimetria de 0,4; 95,4% dos erros abaixo de +1,65σ | A normal serve a 95%. A cauda direita é um pouco mais pesada acima de 2σ: níveis de 98% e 99% são aproximados (aviso no dashboard). |
+| 4. Autocorrelação | Autocorrelação de 1 dia do erro por item. Desvio do erro somado em n dias pela fórmula AR(1): σ²·[n + 2·Σ(n−k)·ρᵏ], com ρ < 0 tratado como 0. | ρ mediano de 0,20; 92% dos itens com ρ > 0 | Sem o ajuste, σ·√n subestima o erro do período (seção 5 do notebook). A causa principal são os blocos de epidemia. |
+| 5. Parâmetros | Prazo de entrega L = 1 dia, revisão R = 7 dias, nível de serviço de 95% (z = 1,645). Todos ajustáveis no dashboard. | — | Na base, o estoque de amanhã é estoque − venda + pedido de hoje em 69% dos dias: o pedido chega no dia seguinte, e a cobertura mediana é de 2,8 dias. Com L = 7, 92 dos 100 itens ficariam críticos. |
+| 6. Fórmulas | ES = z·σ(L+R); PP = D(L) + z·σ(L); Q = máx(0, D(L+R) + ES − estoque atual), arredondada para cima. Alerta: crítico se estoque < D(L); pedir agora se estoque < PP. | 11 críticos, 26 pedir agora, 63 ok | Pesquisa de métodos, seção 6, adaptada para revisão periódica: o período de risco do pedido é L + R, e não só L. |
+| 7. Estoque atual | `estoque` de 30/01/2024 (estoque do início do dia). Previsão a partir de 30/01/2024, com o modelo treinado até 29/01/2024. | 100 itens | A base é histórica: o "hoje" é o último dia. |
+| 8. Teste da regra | σ e ρ calculados nos primeiros 98 dias do teste; nos 84 dias restantes, 10 janelas de 8 dias por item. | 1.000 janelas: 92,9% cobertas sem o ajuste e 95,9% com o ajuste AR(1) | Confirma que o estoque de segurança entrega o nível de serviço prometido. |
+| 9. Backtest | Regra simulada dia a dia de 07/11/2023 a 30/01/2024, a partir do estoque real e com a demanda real, comparada com o estoque real da base. Ruptura = demanda ≥ estoque. | Base: 14,3% de dias com ruptura, 93,9% da demanda atendida, estoque médio 298. StockFlow com R = 1 / 3 / 7: 3,4% / 1,3% / 0,6% de ruptura e estoque médio 226 / 393 / 694. | Teste inicial do cálculo pedido no cronograma. Supõe entrega integral no prazo e não considera custo de pedido nem espaço. |
+
+### Decisões tomadas na Sprint 6
+
+| Ponto | Decisão | Evidência |
+|-------|---------|-----------|
+| Ferramenta do dashboard | Streamlit. Next.js, Neon e Vercel saem do plano. | Requisito 5 aceita Streamlit; os dois apps (Sprint 4 e dashboard inicial) já estão nele. |
+| Classificação da ruptura | Fora do escopo. O alerta é a regra do ponto de pedido. | O bônus pede regressão ou classificação, e a regressão já o atende. |
+| Prazo de entrega padrão | 1 dia, e não os 7 sugeridos na pesquisa de métodos. | Etapa 5 acima. |
+| Estoque de segurança | Com ajuste AR(1) para erros autocorrelacionados. | Etapas 4 e 8 acima. |
+| Período de revisão | Semanal por padrão. A revisão diária é a única que reduz a falta e o estoque ao mesmo tempo, e a de 3 dias pede menos pedidos que a base. | Etapa 9 acima. |
+
